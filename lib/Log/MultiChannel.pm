@@ -27,7 +27,7 @@ $VERSION = '1.0.1';
 # -------------------- End Notice ---------------------
 =head1 NAME
 
-Log::MultiChannel - A full featured module for implimenting log messages on multiple channels to multiple targets.
+Log::MultiChannel - A full featured module for implementing log messages on multiple channels to multiple targets.
 
 =head2 FEATURES
 
@@ -71,9 +71,16 @@ and the Lesser GNU General Public License 3.0 (LGPL).
 
 Please report any bugs or feature requests to bugs@paullapointe.org
 
-JUL 31, 2014 - Changed the mapChannelToLog to be internal to avoid confusion in it's use.
+=head2 Versions
+
+1.01 - JUL 28, 2014 -Initial release
+
+1.02 - JUL 31, 2014 - Changed the mapChannelToLog to be internal to avoid confusion in it's use.
              - Added a name to the startLoggingOnHandle fn to provide a name for these logs to work with
              - Added simple client-server example 
+
+1.03 - AUG 15, 2014 -  Changed distribution test to work on Windows
+             - Corrected various reported spelling mistakes
 
 =head2 METHODS
 
@@ -197,7 +204,7 @@ use UNIVERSAL;
 use IO::Handle;
 
 our @months = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
-our @weekdays = qw( Sun Mon Tues Wed Thrus Fri Sat );
+our @weekdays = qw( Sun Mon Tues Wed Thurs Fri Sat );
 
 our @ISA = 'Exporter';
 our @EXPORT_OK = qw(Log startLogging startLoggingOnHandle stopLogging mapChannel unmapChannel enableChannel disableChannel enableChannelForModule disableChannelForModule assignColorCode enableColor disableColor logStats);

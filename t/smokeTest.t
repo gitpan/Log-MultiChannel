@@ -48,12 +48,18 @@ Log::MultiChannel::closeLogs(); # This will close ALL log files that are open
 exit 0;
 
 # This will check the number of lines in a log
-# using wc -l
+# On *nix I would have used wc, but that doesn't work
+# on Windows.
 sub checkLogLines {
     my $logname=shift;
-    my $expected=shift;
-    chomp(my $lineCount=`wc -l $logname`);
-    ok( $lineCount =~ m/$expected $logname/, "Log should have $expected line - got: ($lineCount).");
-
+    my $expectedLineCount=shift;
+    open (FILEIN,$logname) or BAIL_OUT("Unable to read log file $logname to check it. Something has gone wrong.");
+    my $lineCount=0;
+    while (<FILEIN>) {
+	chomp(my $line=$_);
+	$lineCount++;
+    }
+    close(FILEIN);
+    ok(($lineCount eq $expectedLineCount), "Log should have $expectedLineCount line - got: ($lineCount).");
 }
 

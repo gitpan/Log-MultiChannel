@@ -10,7 +10,7 @@ use ExtUtils::MakeMaker ;
 
 
 my %WriteMakefileArgs = (
-  "ABSTRACT" => "A full featured module for implimenting log messages on multiple channels to multiple targets.",
+  "ABSTRACT" => "A full featured module for implementing log messages on multiple channels to multiple targets.",
   "AUTHOR" => "Paul LaPointe <bugs\@paullapointe.org>",
   "CONFIGURE_REQUIRES" => {
     "ExtUtils::MakeMaker" => 0
@@ -20,7 +20,7 @@ my %WriteMakefileArgs = (
   "LICENSE" => "perl",
   "NAME" => "Log::MultiChannel",
   "PREREQ_PM" => {},
-  "VERSION" => "1.01",
+  "VERSION" => "1.03",
   "test" => {
     "TESTS" => "t/*.t"
   }

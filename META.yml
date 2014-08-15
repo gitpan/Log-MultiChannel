@@ -1,5 +1,5 @@
 ---
-abstract: 'A full featured module for implimenting log messages on multiple channels to multiple targets.'
+abstract: 'A full featured module for implementing log messages on multiple channels to multiple targets.'
 author:
   - 'Paul LaPointe <bugs@paullapointe.org>'
 build_requires: {}
@@ -12,4 +12,4 @@ meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
 name: Log-MultiChannel
-version: 1.01
+version: 1.03
