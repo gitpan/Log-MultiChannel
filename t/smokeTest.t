@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 use strict;
-use Test::More tests => 7; 
+use Test::More tests => 8; 
 
 # Test 1
 BEGIN {
@@ -42,6 +42,16 @@ Log('ERR','This is an Error message for smokeTest1.log & smokeTest2.log');
 checkLogLines($logname1,2);
 checkLogLines($logname2,1);
 
+# Test 8 - disable and enable a channel
+Log::MultiChannel::disableChannel('INF');
+Log('INF','This is an info message for smokeTest1.log');
+Log::MultiChannel::enableChannel('INF');
+# There should be no change in the number of log lines
+checkLogLines($logname1,2);
+
+# Test 9 - This should print a warning, because the channel was not mapped first
+Log::MultiChannel::disableChannel('Blah');
+
 # All Done
 Log::MultiChannel::closeLogs(); # This will close ALL log files that are open
 
@@ -60,6 +70,7 @@ sub checkLogLines {
 	$lineCount++;
     }
     close(FILEIN);
+
     ok(($lineCount eq $expectedLineCount), "Log should have $expectedLineCount line - got: ($lineCount).");
 }
 

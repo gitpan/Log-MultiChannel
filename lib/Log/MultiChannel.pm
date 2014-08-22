@@ -1,6 +1,6 @@
 package Log::MultiChannel;
 use vars qw($VERSION);
-$VERSION = '1.0.1';
+$VERSION = '1.0.4';
 # -------------------- Notice ---------------------
 # Copyright 2014 Paul LaPointe
 # www.PaullaPointe.com/Logging-MultiChannel
@@ -82,6 +82,9 @@ Please report any bugs or feature requests to bugs@paullapointe.org
 1.03 - AUG 15, 2014 -  Changed distribution test to work on Windows
              - Corrected various reported spelling mistakes
 
+1.04 - AUG 21, 2014 - Corrected documentation for enableColor, disableColor, which work on log files, not channels.
+             - Also added a warning if a channel is disabled before its been mapped, which leads to confusion
+
 =head2 METHODS
 
 Please visit <http://paullapointe.org/MultiChannel> for complete documentation, examples, and more.
@@ -154,13 +157,13 @@ Disabled log messages from a specific module for the given channel (overriden by
 
 Assigns a (typically) ASCII color code to a specific channel
 
-=head3 enableColor ( Channel ) 
+=head3 enableColor ( LogFilename ) 
 
-Enables color on a specific channel.
+Enables color on a specific log filename.
 
-=head3 disableColor ( Channel ) 
+=head3 disableColor ( LogFilename ) 
 
-Disables color on a specific channel.
+Disables color on a specific log filename.
 
 =head3 logStats ()
 
@@ -191,7 +194,26 @@ Returns a list with a count of all messages logged to each channel.
 
  Log::MultiChannel::closeLogs(); # This will close ALL log files that are open
  exit;
- 
+
+=head4 Example 3: Tee-ing output to STDOUT and a log file:
+
+ #!/usr/bin/perl
+ # Example 8:  This will tee (copy) the output that is sent to a log file
+ # to STDOUT, so it can be seen as the program runs.
+ use strict;
+ use warnings;
+ use Log::MultiChannel qw(Log);
+
+ Log::MultiChannel::startLogging('myLogFile1.log');
+ Log::MultiChannel::startLoggingOnHandle('STDOUT',\*STDOUT);
+
+ Log::MultiChannel::mapChannel('INF','myLogFile1.log','STDOUT'); # Put INF messages in myLogFile1.log
+
+ Log('INF','This is an Error message for myLogFile1.log, that will also be printed on STDOUT');
+
+ Log::MultiChannel::closeLogs(); # This will close ALL log files that are open
+ exit;
+
 =head4 More Examples are available in the distribution and at http://paullapointe.org/MultiChannel
 
 =cut
@@ -365,7 +387,15 @@ sub closeLogs {
 
 # These will enable (1) or disable (0)  a particular log channel
 sub enableChannel { $channels->{$_[0]}->{state}=1; $channels->{$_[0]}->{count}=0; }
-sub disableChannel { $channels->{$_[0]}->{state}=0; }
+sub disableChannel { 
+    if ($channels->{$_[0]}->{logs}) {
+	$channels->{$_[0]}->{state}=0; 
+    }
+    else {
+	warn("This program has disabled channel $_[0] - but it has not been mapped to a log yet, so it will be re-enabled the first time it is used.");
+    }
+
+}
 
 # This will assign an (normally ascii) color code to a particular channel
 sub assignColorCode { $channels->{$_[0]}->{color}=$_[1]; }

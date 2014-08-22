@@ -13,5 +13,11 @@ examples/example5.pl
 examples/example6.pl
 examples/example7a-logClient.pl
 examples/example7b-logServer.pl
+examples/example8.pl
+examples/example8.pl~
+examples/myLogFile1.log
 lib/Log/MultiChannel.pm
+t/smokeTest.log
 t/smokeTest.t
+t/smokeTest1.log
+t/smokeTest2.log
