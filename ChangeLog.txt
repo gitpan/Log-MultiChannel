@@ -1,0 +1,13 @@
+1.01 - JUL 28, 2014 -Initial release
+
+1.02 - JUL 31, 2014 - Changed the mapChannelToLog to be internal to avoid confusion in it's use.
+             - Added a name to the startLoggingOnHandle fn to provide a name for these logs to work with
+             - Added simple client-server example 
+
+1.03 - AUG 15, 2014 -  Changed distribution test to work on Windows
+             - Corrected various reported spelling mistakes
+
+1.04 - AUG 21, 2014 - Corrected documentation for enableColor, disableColor, which work on log files, not channels.
+             - Also added a warning if a channel is disabled before its been mapped, which leads to confusion
+
+1.05 - Sep 6th, 2014 - Added this change log.
