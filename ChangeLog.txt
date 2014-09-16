@@ -11,3 +11,5 @@
              - Also added a warning if a channel is disabled before its been mapped, which leads to confusion
 
 1.05 - Sep 6th, 2014 - Added this change log.
+
+1.06 - Sept 16th, 2014 - No changes, just correcting the version number.

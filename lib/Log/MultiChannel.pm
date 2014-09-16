@@ -1,6 +1,6 @@
 package Log::MultiChannel;
 use vars qw($VERSION);
-$VERSION = '1.0.4';
+$VERSION = '1.06';
 # -------------------- Notice ---------------------
 # Copyright 2014 Paul LaPointe
 # www.PaullaPointe.com/Logging-MultiChannel
