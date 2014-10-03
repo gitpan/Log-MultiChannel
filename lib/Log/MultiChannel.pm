@@ -1,6 +1,7 @@
 package Log::MultiChannel;
 use vars qw($VERSION);
-$VERSION = '1.06';
+use Term::ANSIColor qw(:constants);
+$VERSION = '1.07';
 # -------------------- Notice ---------------------
 # Copyright 2014 Paul LaPointe
 # www.PaullaPointe.com/Logging-MultiChannel
@@ -71,22 +72,6 @@ and the Lesser GNU General Public License 3.0 (LGPL).
 
 Please report any bugs or feature requests to bugs@paullapointe.org
 
-=head2 Versions
-
-1.01 - JUL 28, 2014 -Initial release
-
-1.02 - JUL 31, 2014 - Changed the mapChannelToLog to be internal to avoid confusion in it's use.
-             - Added a name to the startLoggingOnHandle fn to provide a name for these logs to work with
-             - Added simple client-server example 
-
-1.03 - AUG 15, 2014 -  Changed distribution test to work on Windows
-             - Corrected various reported spelling mistakes
-
-1.04 - AUG 21, 2014 - Corrected documentation for enableColor, disableColor, which work on log files, not channels.
-             - Also added a warning if a channel is disabled before its been mapped, which leads to confusion
-
-=head2 METHODS
-
 Please visit <http://paullapointe.org/MultiChannel> for complete documentation, examples, and more.
 
 =head2 METHODS
@@ -133,9 +118,9 @@ This will map a channel to one or more log files by their name.
 
 Maps a channel to this specific log name.
 
-=head3 unmapChannel ( Channel )
+=head3 unmapChannel ( Channel, [Log filename] )
 
-Unmaps all logs from a channel.
+Unmaps all logs from a channel, or from a specific log file.
 
 =head3 enableChannel ( Channel ) 
 
@@ -147,7 +132,7 @@ Disables log messages from a specific channel.
 
 =head3 enableChannelForModule  ( Channel, Module )
 
- Enables log messages from a specific module for the given channel. 
+Enables log messages from a specific module for the given channel. 
 
 =head3 disableChannelForModule  ( Channel, Module ) 
 
@@ -218,7 +203,6 @@ Returns a list with a count of all messages logged to each channel.
 
 =cut
 
-#
 use strict;
 use warnings;
 require Exporter;
@@ -236,7 +220,7 @@ my $defaultLog; # This tracks the last log file openned, which will be the defau
 my $channels; # This is a list of all available channels
 # channel->{name}->{logs} - A list of all logs mapped to this channel
 # channel->{name}->{count} - A count of all messages sent to this channel 
-# channel->{name}>{state} - 1 for on, 0 for off
+# channel->{name}->{state} - 1 for on, 0 for off
 # channel->{name}->{color} - An ascii color code to optional assign to the channel, for use with the default print handler 
 
 my @logs; # This is a list of all available filehandles
@@ -249,15 +233,16 @@ my @logs; # This is a list of all available filehandles
 # $logs[i]->{colorOn} - This controls if this filehandle will use ascii color codes (for the default logPrint fn)
 
 my %filenameMap; # This maps a filename back to it's permenant Log object
+
+
 # This will start a new log file and 
 # assign a set of channels to the log
 # 0 - filename to open
 # 1 - A limit for the number of lines written to this file, after which it will cycle
-# 2- A Code reference to a special print handler for this file
-#
+# 2 - A Code reference to a special print handler for this file
 sub startLogging {
     my $log;
-    $log->{filename}    =shift; # Obviously, the fully qualified filename for the log
+    $log->{filename}    =shift; # Obviously, filename for the log
     $log->{preserve}    =shift; # An option to retain old copies of the log before overwritting.
     $log->{limit}       =shift; # An optional limit on the number of lines that can be written before cycling this log
     $log->{oldDir}      =shift; # Move old log files to this directory when overwritting
@@ -364,9 +349,24 @@ sub mapChannelToLog_Internal {
     }
 }
 
-# This will remove all the mappings for a channel
+# This will remove all the mappings for a channel,
+# unmapChannel(Channel);
+# unmapchannel(Channel,log);
 sub unmapChannel {
-    undef $channels->{$_[0]}->{logs};
+    # If there's a specific log file provided in arg 2
+    # unmap the channel from that log only
+    if ($_[1]) { 
+	my $log=$filenameMap{$_[1]};
+	# Locate this log in the channels list of logs
+	my $index = 0;
+	$index++ until ${$channels->{$_[0]}->{logs}}[$index] eq $log;
+	# Now remove it 
+	splice(@{$channels->{$_[0]}->{logs}}, $index, 1);	
+    }
+    else {
+	# Otherwise, unmap it from all logs
+	undef $channels->{$_[0]}->{logs};
+    }
 }
 
 # This will close down a log file handle
@@ -375,13 +375,13 @@ sub stopLogging {
     my $filename=shift;
     my $log=$filenameMap{$filename};
 
-    if ($log->{fh}) { close($log->{fh}); }
+    if ($log->{fh}) { close($log->{fh}); undef $log->{fh}; }
 }
 
 # Close all logs
 sub closeLogs { 
     foreach my $log (@logs) {
-	if ($log->{fh}) { close($log->{fh}); }
+	if ($log->{fh}) { close($log->{fh}); undef $log->{fh}; }
     }
 } 
 
@@ -413,7 +413,7 @@ sub disableColor { my $log=$filenameMap{$_[0]}; $log->{colorOn}=0; }
 # These are the args:
 # 0 - Epoch Time
 # 1 - Local Time as a string
-# 2 -  Filehandle
+# 2 - Filehandle
 # 3 - The log object
 # 4 - source module
 # 5 - source filename
@@ -422,28 +422,53 @@ sub disableColor { my $log=$filenameMap{$_[0]}; $log->{colorOn}=0; }
 # 8 - channel name
 # 9 - message
 # 10,etc - Additional parameters...
-
 sub logPrint {
     my $fh=$_[2];
 
     # If color codes are turned on, add one now for the specified color
     if ($_[7]) { print $fh $_[7]; }   
     
+    # Print the channel, date, line of code
+    printf $fh "$_[8] %24s %12s ",$_[1],"$_[4]-$_[6]";
+
     # Print the line content
-    printf $fh "$_[8] %24s %12s %s",$_[1],"$_[4]-$_[6]",$_[9];
-    
+    for (my $i=9;$i<scalar(@_);$i++) {
+	if ($i>9) { printf $fh ','; }
+	printf $fh $_[$i];
+    }
+
     # If color codes are turned on, add one for black now
-    if ($_[7]) { print $fh "\e[49m"; }  
+    if ($_[7]) { print $fh RESET; }  
+    
+    # end the line with a carriage return
+    print $fh "\n"; 
+}
+
+# An alternative print function, that is color enabled,
+# and will print the channel and message, no time or line of code
+sub logPrintSimple {
+    my $fh=$_[2];
+
+    # If color codes are turned on, add one now for the specified color
+    if ($_[7]) { print $fh $_[7]; }   
+    
+    # Print the line content
+    printf $fh "$_[8] ";
+    for (my $i=9;$i<scalar(@_);$i++) {
+	if ($i>9) { printf $fh ','; }
+	printf $fh $_[$i];
+    }
+
+    # If color codes are turned on, add one for black now
+    if ($_[7]) { print $fh RESET; }  
     
     # end the line with a carriage return
     print $fh "\n";
     
     # Increment the log line counter
     $_[3]->{count}++;
-    
-    # If we've hit the log line limit, cycle the log
-    if (($_[3]->{limit}) and ($_[3]->{count} > $_[3]->{limit})) { &cycleLog($_[3]); }
 }
+
 
 # This is the external function used to log messages on a particular
 # channel. This are the args:
@@ -475,11 +500,20 @@ sub Log {
 
 	# Print the message on each of the filehandles for this channel
 	foreach my $log (@{$channels->{$_[0]}->{logs}}) { 
-	    if ($log->{printHandler}) { 
-		my $color;
-		# If this filehandle has color turned on, and this channel has a desired color, provide it
-		if ($log->{colorOn}) { $color=$channels->{$_[0]}->{color}; }
-		&{$log->{printHandler}}($now,$localNow,$log->{fh},$log,$pkg,$srcfilename,$line,$color,@_); 
+	    # Only print to this log if it has a filehandle
+	    if ($log->{fh}) {
+		if ($log->{printHandler}) { 
+		    my $color;
+		    # If this filehandle has color turned on, and this channel has a desired color, provide it
+		    if ($log->{colorOn}) { $color=$channels->{$_[0]}->{color}; }
+		    &{$log->{printHandler}}($now,$localNow,$log->{fh},$log,$pkg,$srcfilename,$line,$color,@_); 
+		    
+		    # Increment the log line counter
+		    $log->{count}++;
+		    
+		    # If we've hit the log line limit, cycle the log
+		    if (($log->{limit}) and ($log->{count} > $log->{limit})) { &cycleLog($log); }
+		}
 	    }
 	}
     } 
@@ -545,8 +579,5 @@ sub logStats {
     }
     return @ret;
 }
-
-#--------------------------------------------------------------------------------------------------
-# 2. Make it thread safe!
 
 1;

@@ -15,5 +15,4 @@
 1.06 - Sept 16th, 2014 - No changes, just correcting the version number.
 
 1.07 - Oct 3rd, 2014 - Added logPrintSimple function as an alternative to the default print handler.
-             - Added a check to prevent printing on closed log handles.
-             - Added an option second arg to unmapChannel to unmap a channel from a specific log: unmapChannel(channel, filename)
+             - Also added check to prevent printing on closed log handles.
