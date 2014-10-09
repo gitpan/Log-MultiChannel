@@ -1,19 +1,20 @@
 #!/usr/bin/perl
 use strict;
-use Test::More tests => 11; 
+use Test::More tests => 13; 
 use Term::ANSIColor qw(:constants);
-# Test 1
-BEGIN {
-    use_ok('Log::MultiChannel',qw(Log));
-}
 
-# Test 2 - Open a log
 my $logname0='smokeTest0.log';
 my $logname1='smokeTest1.log';
 my $logname2='smokeTest2.log';
 my $logname3='smokeTest3.log';
 my $logname4='smokeTest4.log';
 
+# Test 1
+BEGIN {
+    use_ok('Log::MultiChannel',qw(Log));
+}
+
+# Test 2 - Open a log
 my $fh=Log::MultiChannel::startLogging($logname0);
 isnt( $fh, '',"Got a filehandle" );
 
@@ -21,12 +22,16 @@ isnt( $fh, '',"Got a filehandle" );
 if (-f $logname0) { pass("Log File exists."); } else { fail("Log File does not exist."); }
 
 # Test 4 - Did the log get the last message
-Log('Info','This is a test.');
-checkLogLines($logname0,1);
+Log('INF','This is a test.');
+checkLogLines($logname0,2);
 
 # Test 5 - Send an error
-Log('Err','This is a error.');
-checkLogLines($logname0,2);
+Log('ERR','This is a error.');
+checkLogLines($logname0,3);
+
+# Test 5a - Send an error
+Log('ERR');
+checkLogLines($logname0,4);
 
 # Test 6 - Open two more logs
 Log::MultiChannel::startLogging($logname1);
@@ -38,17 +43,17 @@ Log::MultiChannel::mapChannel('ERR',$logname1); # Put ERR messages in myLogFile1
 Log::MultiChannel::mapChannel('ERR',$logname2); # ALSO put ERR messages in myLogFile2.log
 
 Log('INF','This is an info message for smokeTest1.log');
-Log('ERR','This is an Error message for smokeTest1.log & smokeTest2.log');
+Log('ERR','This is an error message for smokeTest1.log & smokeTest2.log');
 
-checkLogLines($logname1,2);
-checkLogLines($logname2,1);
+checkLogLines($logname1,3);
+checkLogLines($logname2,2);
 
 # Test 8 - disable and enable a channel
 Log::MultiChannel::disableChannel('INF');
 Log('INF','This is an info message for smokeTest1.log');
 Log::MultiChannel::enableChannel('INF');
 # There should be no change in the number of log lines
-checkLogLines($logname1,2);
+checkLogLines($logname1,3);
 
 # Test 9 - This should print a warning, because the channel was not mapped first
 Log::MultiChannel::disableChannel('Blah');
@@ -85,8 +90,16 @@ Log::MultiChannel::unmapChannel('INF',$logname4); # Put INF messages in log 4
 Log('INF','The INF channel is not mapped.');
 Log::MultiChannel::mapChannel('INF',$logname4); # Put INF messages in log 4
 Log('INF','The INF channel is mapped again.');
-checkLogLines($logname4,2); # There should be 0 lines in the log
+checkLogLines($logname4,3); # There should be 0 lines in the log
 
+# Test 13 - Change the print handler for a log.
+Log::MultiChannel::setPrintHandler($logname4,'Log::MultiChannel::logPrint');
+Log('INF','This is the logPrint handler.');
+Log::MultiChannel::setPrintHandler($logname4,'Log::MultiChannel::logPrintSimple');
+Log('INF','This is the logPrintSimple handler.');
+Log::MultiChannel::setPrintHandler($logname4,'Log::MultiChannel::logPrintVerbose');
+Log('INF','This is the logPrintVerbose handler.');
+checkLogLines($logname4,6);
 exit 0;
 
 # This will check the number of lines in a log

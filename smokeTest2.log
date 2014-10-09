@@ -1,2 +1,3 @@
-ERR Fri Oct  3 15:56:39 2014      main-41 This is an Error message for smokeTest1.log & smokeTest2.log
-ERR Fri Oct  3 15:56:39 2014      main-64 This is an error in red on STDOUT.
+---- 2014 Oct 8 ----
+23.45.09 ERR t/smokeTest.t-46 This is an error message for smokeTest1.log & smokeTest2.log
+23.45.09 ERR t/smokeTest.t-69 This is an error in red on STDOUT.

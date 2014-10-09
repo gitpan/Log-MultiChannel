@@ -1,2 +1,7 @@
-Info Fri Oct  3 15:56:39 2014      main-24 This is a test.
-Err Fri Oct  3 15:56:39 2014      main-28 This is a error.
+---- 2014 Oct 8 ----
+23.45.09 INF t/smokeTest.t-25 This is a test.
+23.45.09 ERR t/smokeTest.t-29 This is a error.
+23.45.09 ERR t/smokeTest.t-33 
+23.45.09 INF t/smokeTest.t-45 This is an info message for smokeTest1.log
+23.45.09 ERR t/smokeTest.t-46 This is an error message for smokeTest1.log & smokeTest2.log
+23.45.09 ERR t/smokeTest.t-69 This is an error in red on STDOUT.

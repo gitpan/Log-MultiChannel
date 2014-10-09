@@ -1,7 +1,7 @@
 package Log::MultiChannel;
 use vars qw($VERSION);
 use Term::ANSIColor qw(:constants);
-$VERSION = '1.07';
+$VERSION = '1.08';
 # -------------------- Notice ---------------------
 # Copyright 2014 Paul LaPointe
 # www.PaullaPointe.com/Logging-MultiChannel
@@ -84,15 +84,25 @@ Additional args can be passed in for use by a custom log handler.
 
 =head3 startLogging( filename, preserve, limit, oldDir, printHandler )
 
-filename     - the fully qualified filename for the log
+filename     - the fully qualified filename for the log.
 
 preserve     - An option to retain old copies of the log before overwritting (0 or 1).
 
-limit        - An optional limit on the number of lines that can be written before cycling this log
+limit        - An optional limit on the number of lines that can be written before cycling this log.
 
-oldDir       - Move old log files to this fully qualified directory when overwritting
+oldDir       - Move old log files to this fully qualified directory when overwritting.
 
-printHandler - An optional special print handler for this file 
+printHandler - An optional special print handler for this file.
+               Three print handlers are included in the module itself:
+                  - logPrint - This is includes the date (only when it changes), time, channel, source filename, source line. E.g:
+                  ---- 2014 Oct 8 ----
+                  17.50.49 INF t/smokeTest.t-25 This is a test.
+
+                  - logPrintVerbose - This is includes the date and time, channel, source filename, source line. E.g:
+                  INF Wed Oct  8 23:42:25 2014 t/smokeTest.t-101 This is the logPrintVerbose handler.
+
+                  - logPrintSimple - E.g:
+                  INF This is the logPrintSimple handler.
 
 =head3 startLoggingOnHandle ( name, fileHandle, printHandler )
 
@@ -231,6 +241,8 @@ my @logs; # This is a list of all available filehandles
 # $logs[i]->{printHandler} - a print handler for this file
 # $logs[i]->{filename} - the filename of for this filehandle
 # $logs[i]->{colorOn} - This controls if this filehandle will use ascii color codes (for the default logPrint fn)
+# $logs[i]->{currentYear} - The year of the last message printed on this log
+# $logs[i]->{currentmday} - The current day of the month of the last message printed on this log
 
 my %filenameMap; # This maps a filename back to it's permenant Log object
 
@@ -247,7 +259,7 @@ sub startLogging {
     $log->{limit}       =shift; # An optional limit on the number of lines that can be written before cycling this log
     $log->{oldDir}      =shift; # Move old log files to this directory when overwritting
     $log->{printHandler}=shift; # An optional special print handler for this file 
-
+  
     # If not provided, the printHandler will default to the std fn
     unless ($log->{printHandler}) { $log->{printHandler}=\&logPrint; }
   
@@ -278,7 +290,7 @@ sub startLoggingOnHandle {
     $log->{preserve}=0;  # Disabled
     $log->{limit}   =0;  # Disabled
     $log->{oldDir}  =''; # Disabled
-
+    
     # If not provided, the printHandler will default to the std fn
     unless ($log->{printHandler}) { $log->{printHandler}=\&logPrint; }
 
@@ -293,19 +305,30 @@ sub startLoggingInternal {
     # Reset the counter for this log
     $log->{count}=0;
 
-    # Add this new Log to our list
-    push @logs,$log;
-    
+    # Initialize the last month day and year to 0
+    $log->{currentmday}=0;
+    $log->{currentYear}=0;
+       
     # Also add this Log in the filenameMap, so we can easily find it with the name
     $filenameMap{$log->{filename}}=$log;
 
     # Remember this most recent log as the new default for unmapped channels
     $defaultLog=$log;
 
+    # Add this new Log to our list
+    push @logs,$log;
+
     return $log->{fh};
 }
 
-
+# This will set the handler of the specified log file
+# to the provided handler 
+sub setPrintHandler {
+    my $logName=shift;
+    my $handler=shift;
+    my $log=$filenameMap{$logName};
+    $log->{printHandler}=\&{$handler};
+}
 
 # This will map a set of channels to list of log files, specified by their name.
 # Note! Channels are enabled by default. You must disable them if you want
@@ -422,14 +445,61 @@ sub disableColor { my $log=$filenameMap{$_[0]}; $log->{colorOn}=0; }
 # 8 - channel name
 # 9 - message
 # 10,etc - Additional parameters...
+
 sub logPrint {
+    my $fh=$_[2];  
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($_[0]);
+    $year += 1900;
+
+    if (($year!=$_[3]->{currentYear}) or ($mday!=$_[3]->{currentmday})) { 
+	$_[3]->{currentYear}=$year;
+	$_[3]->{currentmday}=$mday; 
+	printf $fh "---- $year $months[$mon] $mday ----\n"; 
+    }
+    $sec=sprintf("%02d", $sec);
+    my $timestamp="$hour.$min.$sec"; 
+
+    # If color codes are turned on, add one now for the specified color
+    if ($_[7]) { print $fh $_[7]; }   
+    
+    # Print the channel, date, line of code
+    printf $fh "%8s $_[8] %12s ",$timestamp,"$_[5]-$_[6]";
+
+    # Print the line content
+    for (my $i=9;$i<scalar(@_);$i++) {
+	if ($i>9) { printf $fh ','; }
+	printf $fh $_[$i];
+    }
+
+    # If color codes are turned on, add one for black now
+    if ($_[7]) { print $fh RESET; }  
+    
+    # end the line with a carriage return
+    print $fh "\n"; 
+}
+
+# This is the main internal print routine for the logging.
+# This function should not be called externally.
+# These are the args:
+# 0 - Epoch Time
+# 1 - Local Time as a string
+# 2 - Filehandle
+# 3 - The log object
+# 4 - source module
+# 5 - source filename
+# 6 - source line #
+# 7 - desired color
+# 8 - channel name
+# 9 - message
+# 10,etc - Additional parameters...
+sub logPrintVerbose {
     my $fh=$_[2];
 
     # If color codes are turned on, add one now for the specified color
     if ($_[7]) { print $fh $_[7]; }   
     
     # Print the channel, date, line of code
-    printf $fh "$_[8] %24s %12s ",$_[1],"$_[4]-$_[6]";
+    printf $fh "$_[8] %24s %12s ",$_[1],"$_[5]-$_[6]";
 
     # Print the line content
     for (my $i=9;$i<scalar(@_);$i++) {
@@ -475,7 +545,11 @@ sub logPrintSimple {
 # 0 - channel
 # 1 - message
 sub Log {
-   
+    
+    unless ($_[0]) { return; }
+    # Check that the message is a defined value, and define it to an empty string if its not.
+    unless ($_[1]) { $_[1]=''; }
+
     # Check that this channel is actually mapped to a log
     unless ($channels->{$_[0]}->{logs}) { 
 	if ($defaultLog) { 
@@ -549,6 +623,9 @@ sub moveOldLog {
 
     # Get a timestamp, to add to the name of the old log file 
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+    $sec=sprintf("%02d", $sec);
+    $min=sprintf("%02d", $min);
+    $hour=sprintf("%02d", $hour);
     $year += 1900;        
     my $timestamp="$year-".$months[$mon]."-".$mday."_"."$hour.$min.$sec"; 
     
