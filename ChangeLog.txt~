@@ -17,3 +17,9 @@
 1.07 - Oct 3rd, 2014 - Added logPrintSimple function as an alternative to the default print handler.
              - Added a check to prevent printing on closed log handles.
              - Added an option second arg to unmapChannel to unmap a channel from a specific log: unmapChannel(channel, filename)
+
+1.08 - Oct 3rd, 2014 - The previous logPrint function is now called logPrintVerbose
+             - The new default logPrint function will not print the year, month or day of month unless they have changed, since the last message
+	       printed the current log file.
+             - The hour, min and second are now left padded with 0s in filename timestamps.
+             - Added protection for undefined channel name and undefined log messages.

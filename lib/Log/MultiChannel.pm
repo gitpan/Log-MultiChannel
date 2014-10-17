@@ -1,7 +1,7 @@
 package Log::MultiChannel;
 use vars qw($VERSION);
 use Term::ANSIColor qw(:constants);
-$VERSION = '1.08';
+$VERSION = '1.09';
 # -------------------- Notice ---------------------
 # Copyright 2014 Paul LaPointe
 # www.PaullaPointe.com/Logging-MultiChannel
@@ -467,8 +467,8 @@ sub logPrint {
 
     # Print the line content
     for (my $i=9;$i<scalar(@_);$i++) {
-	if ($i>9) { printf $fh ','; }
-	printf $fh $_[$i];
+	if ($i>9) { print $fh ','; }
+	print $fh $_[$i];
     }
 
     # If color codes are turned on, add one for black now
@@ -503,8 +503,8 @@ sub logPrintVerbose {
 
     # Print the line content
     for (my $i=9;$i<scalar(@_);$i++) {
-	if ($i>9) { printf $fh ','; }
-	printf $fh $_[$i];
+	if ($i>9) { print $fh ','; }
+	print $fh $_[$i];
     }
 
     # If color codes are turned on, add one for black now
@@ -525,8 +525,8 @@ sub logPrintSimple {
     # Print the line content
     printf $fh "$_[8] ";
     for (my $i=9;$i<scalar(@_);$i++) {
-	if ($i>9) { printf $fh ','; }
-	printf $fh $_[$i];
+	if ($i>9) { print $fh ','; }
+	print $fh $_[$i];
     }
 
     # If color codes are turned on, add one for black now
