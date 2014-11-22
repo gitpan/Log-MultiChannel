@@ -1,7 +1,7 @@
 package Log::MultiChannel;
 use vars qw($VERSION);
 use Term::ANSIColor qw(:constants);
-$VERSION = '1.09';
+$VERSION = '1.10';
 # -------------------- Notice ---------------------
 # Copyright 2014 Paul LaPointe
 # www.PaullaPointe.com/Logging-MultiChannel
@@ -456,8 +456,11 @@ sub logPrint {
 	$_[3]->{currentmday}=$mday; 
 	printf $fh "---- $year $months[$mon] $mday ----\n"; 
     }
+
     $sec=sprintf("%02d", $sec);
-    my $timestamp="$hour.$min.$sec"; 
+    $min=sprintf("%02d", $min);
+    $hour=sprintf("%02d", $hour);
+    my $timestamp="$hour:$min:$sec"; 
 
     # If color codes are turned on, add one now for the specified color
     if ($_[7]) { print $fh $_[7]; }   
@@ -627,7 +630,7 @@ sub moveOldLog {
     $min=sprintf("%02d", $min);
     $hour=sprintf("%02d", $hour);
     $year += 1900;        
-    my $timestamp="$year-".$months[$mon]."-".$mday."_"."$hour.$min.$sec"; 
+    my $timestamp="$year-".$months[$mon]."-".$mday."_"."$hour:$min:$sec"; 
     
     # Rename the old file with the timestamp
     my $cmd="mv -f $filename $filename\.$timestamp";

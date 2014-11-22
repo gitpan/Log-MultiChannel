@@ -1,6 +1,0 @@
----- 2014 Oct 8 ----
-23.45.09 INF t/smokeTest.t-88 The INF channel is mapped.
-23.45.09 INF t/smokeTest.t-92 The INF channel is mapped again.
-23.45.09 INF t/smokeTest.t-97 This is the logPrint handler.
-INF This is the logPrintSimple handler.
-INF Wed Oct  8 23:45:09 2014 t/smokeTest.t-101 This is the logPrintVerbose handler.

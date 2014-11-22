@@ -25,3 +25,5 @@
              - Added protection for undefined channel name and undefined log messages.
 
 1.09 - Oct 16th, 2014 - Corrected printf to print call in print handlers to avoid accidently interperting printf flags in messages.
+
+1.10 - Oct 16th, 2014 - Corrected missing hour, min left padding in message timestamps.
